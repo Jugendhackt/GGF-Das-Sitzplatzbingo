@@ -8,13 +8,16 @@ app = Flask(__name__)
 
 api_links = {
     'station': 'https://marudor.de/api/hafas/v1/station/{}',
-    'train': 'https://marudor.de/api/hafas/v1/trainSearch/{}?date={}'
+    'train': 'https://marudor.de/api/hafas/v1/trainSearch/{}?date={}',
+    'utilization': 'https://marudor.de/api/reihung/v1/auslastung/{}/{}/{}/{}'
 }
 
 
 def get_station(stations, station_id):
     for station in stations:
         if station['station']['id'] == station_id:
+            if 'arrival' not in station or 'departure' not in station:
+                return None, None
             return station['arrival']['time'], station['departure']['time']
     return None, None
 
@@ -44,23 +47,32 @@ def seats(train_name, date, station_name):
     if 'jDetails' not in train_info or 'stops' not in train_info['jDetails']:
         answer['error'] = 'Zug nicht gefunden'
         return answer, 400
+
     train_stations = train_info['jDetails']['stops']
     station_arrival, station_departure = get_station(train_stations, station_id)
-    if not station_arrival or not station_departure:
+    if not station_departure:
         answer['error'] = 'Ankunfts- und Abfahrtszeiten für Zug am Bahnhof nicht gefunden'
         return answer, 500
 
-    # convert station times to ISO format
+    # convert request times to UTC time and ISO format
     station_arrival_iso = datetime.fromtimestamp(station_arrival // 1000).isoformat() + 'Z'
     answer['stationArrival'] = station_arrival_iso
     station_departure_iso = datetime.fromtimestamp(station_departure // 1000).isoformat() + 'Z'
     answer['stationDeparture'] = station_departure_iso
 
-    # TODO: Auslastungs-Request machen
+    # remove 5 minutes from departure time (-> start time) and add 6 hours to departure time (-> end time)
+    start_time_millis = station_departure - 5 * 60 * 1000
+    start_time_iso = datetime.utcfromtimestamp(start_time_millis // 1000).isoformat() + 'Z'
+    end_time_millis = station_departure + 6 * 60 * 60 * 1000
+    end_time_iso = datetime.utcfromtimestamp(end_time_millis // 1000).isoformat() + 'Z'
+
+    # get utilization of train at station
+    utilization_info = requests.get(api_links['utilization'].format(train_name, station_id, start_time_iso, end_time_iso)).json()
+    answer['utilization'] = utilization_info  # TODO: change
 
     answer['success'] = True
     return answer
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')
