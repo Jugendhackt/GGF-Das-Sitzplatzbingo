@@ -9,7 +9,8 @@ app = Flask(__name__)
 api_links = {
     'station': 'https://marudor.de/api/hafas/v1/station/{}',
     'train': 'https://marudor.de/api/hafas/v1/trainSearch/{}?date={}',
-    'utilization': 'https://marudor.de/api/reihung/v1/auslastung/{}/{}/{}/{}'
+    'utilization': 'https://marudor.de/api/reihung/v1/auslastung/{}/{}/{}/{}',
+    'sequence': 'https://marudor.de/api/reihung/v1/wagen/{}/{}'
 }
 
 
@@ -20,6 +21,14 @@ def get_station(stations, station_id):
                 return None, None
             return station['arrival']['time'], station['departure']['time']
     return None, None
+
+
+def get_sequence_data(sequence_info, wagon_id):
+    for wagon_group in sequence_info['allFahrzeuggruppe']:
+        for wagon in wagon_group['allFahrzeug']:
+            if wagon['fahrzeugnummer'] == wagon_id:
+                return wagon
+    return None
 
 
 @app.route("/seats/<train_name>/<date>/<station_name>")
@@ -49,26 +58,55 @@ def seats(train_name, date, station_name):
         return answer, 400
 
     train_stations = train_info['jDetails']['stops']
-    station_arrival, station_departure = get_station(train_stations, station_id)
-    if not station_departure:
+    station_arrival_millis, station_departure_millis = get_station(train_stations, station_id)
+    if not station_departure_millis:
         answer['error'] = 'Ankunfts- und Abfahrtszeiten für Zug am Bahnhof nicht gefunden'
         return answer, 500
 
     # convert request times to UTC time and ISO format
-    station_arrival_iso = datetime.fromtimestamp(station_arrival // 1000).isoformat() + 'Z'
+    station_arrival_iso = datetime.fromtimestamp(station_arrival_millis // 1000).isoformat() + 'Z'
     answer['stationArrival'] = station_arrival_iso
-    station_departure_iso = datetime.fromtimestamp(station_departure // 1000).isoformat() + 'Z'
+    station_departure_iso = datetime.fromtimestamp(station_departure_millis // 1000).isoformat() + 'Z'
     answer['stationDeparture'] = station_departure_iso
 
     # remove 5 minutes from departure time (-> start time) and add 6 hours to departure time (-> end time)
-    start_time_millis = station_departure - 5 * 60 * 1000
+    start_time_millis = station_departure_millis - 5 * 60 * 1000
     start_time_iso = datetime.utcfromtimestamp(start_time_millis // 1000).isoformat() + 'Z'
-    end_time_millis = station_departure + 6 * 60 * 60 * 1000
+    end_time_millis = station_departure_millis + 6 * 60 * 60 * 1000
     end_time_iso = datetime.utcfromtimestamp(end_time_millis // 1000).isoformat() + 'Z'
 
     # get utilization of train at station
-    utilization_info = requests.get(api_links['utilization'].format(train_name, station_id, start_time_iso, end_time_iso)).json()
-    answer['utilization'] = utilization_info  # TODO: change
+    utilization_info = requests.get(
+        api_links['utilization'].format(train_name, station_id, start_time_iso, end_time_iso)).json()
+
+    # get sequence info of train at station departure time
+    train_number = ''.join([c for c in train_name if c.isdigit()])
+    sequence_info = requests.get(api_links['sequence'].format(train_number, station_departure_millis)).json()
+
+    # map data from utilization and sequence info to json object
+    utilization = []
+    for wagon_id, wagon_data in utilization_info['auslastung'].items():
+        sequence_data = get_sequence_data(sequence_info, wagon_id)
+        if not sequence_data:
+            answer['error'] = 'Wagon-Informationen nicht gefunden'
+            return answer, 500
+
+        # don't use data of end and dining wagons
+        if sequence_data['kategorie'] in ['TRIEBKOPF', 'SPEISEWAGEN']:
+            continue
+
+        utilization.append({
+            'wagonPosition': sequence_data['positioningruppe'],
+            'wagonNumber': sequence_data['wagenordnungsnummer'],
+            'wagonType': sequence_data['fahrzeugtyp'],
+            'capacitySeatsFirst': wagon_data['capacitySeatsFirst'],
+            'capacitySeatsSecond': wagon_data['capacitySeatsSecond'],
+            'seatReservationsFirst': wagon_data['seatReservationsFirst'] if wagon_data['seatReservationsFirst'] else 0,
+            'seatReservationsSecond': wagon_data['seatReservationsSecond'] if wagon_data[
+                'seatReservationsSecond'] else 0,
+            'reservedSeats': wagon_data['occupiedSeats']
+        })
+    answer['utilization'] = utilization
 
     answer['success'] = True
     return answer
