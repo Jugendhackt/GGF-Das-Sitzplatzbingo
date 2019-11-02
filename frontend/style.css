@@ -5,7 +5,8 @@
 			background:#f0f0f2;
 		}
 		.rote_striche {
-			color:#f01414;
+			background-color:#f01414;
+			height:50px;
 		}
 		div {
 			padding:10px 220px;
@@ -13,3 +14,11 @@
 		.Startort {
 			with: 125px;
 		}
+		.button {
+ 			background-color: #f01414;
+  			border: none;
+  			color: white;
+  			padding: 15px 25px;
+  			text-align: center;
+  			font-size: 16px;
+  			cursor: pointer;
