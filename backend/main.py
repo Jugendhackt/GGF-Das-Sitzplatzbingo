@@ -22,6 +22,13 @@ def get_station(stations, station_id):
     return None, None
 
 
+def millis_to_iso_string(date_millis, to_utc):
+    if to_utc:
+        return datetime.utcfromtimestamp(date_millis // 1000).isoformat() + 'Z'
+    else:
+        return datetime.fromtimestamp(date_millis // 1000).isoformat() + 'Z'
+
+
 def get_sequence_data(sequence_info, wagon_id):
     for wagon_group in sequence_info['allFahrzeuggruppe']:
         for wagon in wagon_group['allFahrzeug']:
@@ -69,17 +76,16 @@ def seats(train_name, date_string, station_name):
         answer['error'] = 'Zug hält nicht am angegebenen Bahnhof (oder ist Endhalt)'
         return answer, 400
 
-    # convert request times to UTC time and ISO format
-    station_arrival_iso = datetime.fromtimestamp(station_arrival_millis // 1000).isoformat() + 'Z'
-    answer['stationArrival'] = station_arrival_iso
-    station_departure_iso = datetime.fromtimestamp(station_departure_millis // 1000).isoformat() + 'Z'
-    answer['stationDeparture'] = station_departure_iso
+    # convert request times to ISO format and return them
+    answer['stationArrival'] = millis_to_iso_string(station_arrival_millis, False)
+    answer['stationDeparture'] = millis_to_iso_string(station_departure_millis, False)
 
+    # convert dates to UTC time and
     # remove 5 minutes from departure time (-> start time) and add 6 hours to departure time (-> end time)
     start_time_millis = station_departure_millis - 5 * 60 * 1000
-    start_time_iso = datetime.utcfromtimestamp(start_time_millis // 1000).isoformat() + 'Z'
+    start_time_iso = millis_to_iso_string(start_time_millis, True)
     end_time_millis = station_departure_millis + 6 * 60 * 60 * 1000
-    end_time_iso = datetime.utcfromtimestamp(end_time_millis // 1000).isoformat() + 'Z'
+    end_time_iso = millis_to_iso_string(end_time_millis, True)
 
     # get utilization of train at station
     utilization_info = requests.get(
