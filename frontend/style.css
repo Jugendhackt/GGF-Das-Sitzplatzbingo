@@ -3,6 +3,7 @@
 		}
 		body {
 			background:#f0f0f2;
+			background: white;
 		}
 		.rote_striche {
 			background-color:#f01414;
@@ -14,6 +15,35 @@
 		.Startort {
 			with: 125px;
 		}
+
+#ice{
+	width: 36vw;
+}
+
+.wagen{
+	margin: 5vw;
+	height: 100%;
+}
+
+.sitz{
+	width: 5vw;
+	height: 5vw;
+	
+	background: #e3e3e3;
+	
+	margin: 0.1vw;
+	
+	float: left;
+}
+
+.zwischenraum{
+	width: 5vw;
+	height: 5vw;
+	
+	background: white;
+	
+	float: left;
+}
 		.button {
  			background-color: #f01414;
   			border: none;
@@ -22,3 +52,4 @@
   			text-align: center;
   			font-size: 16px;
   			cursor: pointer;
+		}
