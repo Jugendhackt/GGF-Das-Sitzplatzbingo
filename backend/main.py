@@ -97,6 +97,9 @@ def seats(train_name, date_string, station_name):
     # get sequence info of train at station departure time
     train_number = ''.join([c for c in train_name if c.isdigit()])
     sequence_info = requests.get(api_links['sequence'].format(train_number, station_departure_millis)).json()
+    if 'allFahrzeuggruppe' not in sequence_info:
+        answer['error'] = 'Für den angegebenen Zug sind keine Wagondaten verfügbar'
+        return answer, 400
 
     # map data from utilization and sequence info to json object
     utilization = []
