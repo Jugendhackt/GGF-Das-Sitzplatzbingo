@@ -53,3 +53,6 @@ h1 {
     font-size: 16px;
     cursor: pointer;
 }
+input {  
+margin: 5px;
+}
