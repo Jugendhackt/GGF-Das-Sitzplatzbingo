@@ -36,6 +36,18 @@
 	</div>
 	</form>
 	<hr class="rote_striche">
+	<script>
+       $( "button#direktcheck" ).on( "click", function( event ) {
+          event.preventDefault();
+          $.ajax({
+		  url: "http://192.168.10.146:5000/seats/ICE610/2019-11-02/Wolfsburg%20Hbf",
+                  type: "GET",
+		  success: function( result ) {
+                     console.log(result);
+		  }
+	 });
+       });
+       </script>
 </body>
 </html>
 	
