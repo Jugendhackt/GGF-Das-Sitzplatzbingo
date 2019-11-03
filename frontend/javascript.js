@@ -51,7 +51,7 @@ $("button").on("click", function (event) {
     event.preventDefault();
 
     const startort = encodeURIComponent($('input#startort').val()),
-        zugnummer = $('input#zugnummer').val(),
+        zugnummer = $('input#zugnummer').val().replace(/\s/g, ''),
         datum = $('input#datum').val();
 
     $.ajax({
