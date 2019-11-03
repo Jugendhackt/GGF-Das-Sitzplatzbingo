@@ -31,7 +31,22 @@ function showTrainInfo(result) {
     });
 }
 
-$("button#search").on("click", function (event) {
+function showDirectCheck(result, waggon, sitz) {
+    result.utilization.forEach(function (element) {
+        if (element.wagonNumber === waggon) {
+            const sitze = element.reservedSeats.map(seat => parseInt(seat, 10).toString()),
+                sitzReserviertText = sitze.indexOf(sitz) > -1 ? '' : 'nicht ';
+            document.getElementById("ice").innerHTML = '<h3>Dein Platz ist ' + sitzReserviertText + 'reserviert.</h3>';
+        }
+    });
+}
+
+$("button").on("click", function (event) {
+    const buttonId = event.target.id;
+    if (buttonId !== 'search' && buttonId !== 'direktcheck') {
+        return;
+    }
+
     event.preventDefault();
 
     const startort = encodeURIComponent($('input#startort').val()),
@@ -43,7 +58,13 @@ $("button#search").on("click", function (event) {
         type: "GET",
         crossDomain: true,
         success: function (result) {
-            showTrainInfo(result);
+            if (buttonId === 'search') {
+                showTrainInfo(result);
+            } else if (buttonId === 'direktcheck') {
+                const waggon = $('input#waggon').val(),
+                    sitz = $('input#sitz').val();
+                showDirectCheck(result, waggon, sitz);
+            }
         },
         error: function (result) {
             let error;
