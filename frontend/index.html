@@ -9,11 +9,10 @@
 <center>
     <h1>GGF - Das Sitzplatzbingo</h1>
 </center>
-<form>
-
-    <div class="rote_striche">
-    </div>
-    <div class="Kasten">
+<div class="rote_striche">
+</div>
+<div class="Kasten">
+    <form>
         <label for="startort">Startort</label>
         <input id="startort" type="text"/>
         <label for="zielort">Zielort</label>
@@ -40,8 +39,9 @@
             <button id="direktcheck" class="button">Direktcheck</button>
         </center>
         <br>
-    </div>
-</form>
+    </form>
+</div>
+<div id="ice"></div>
 <hr class="rote_striche">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" crossorigin="anonymous"></script>
 <script>
@@ -53,7 +53,36 @@
             type: "GET",
             crossDomain: true,
             success: function (result) {
-                console.log(result);
+                let counter = 0, reihen = 12;
+                result.utilization.forEach(function (element) {
+                    let k = parseInt(element.wagonPosition);
+
+                    let gesamt = element.capacitySeatsFirst + element.capacitySeatsSecond;
+                    let reserviert = element.seatReservationsFirst + element.seatReservationsSecond;
+                    let auslastung = Math.round(((reserviert / gesamt) * 100));
+
+                    let hinzu2 = "<div class='wagen' id='wagen" + k + "'> Auslastung: " + auslastung + "%</div>";
+                    document.getElementById("ice").innerHTML += hinzu2;
+                    for (let j = 1; j <= reihen; j++) {
+                        let hinzu1 = "<div id='" + k + "reihe" + j + "'></div>";
+                        document.getElementById("wagen" + k).innerHTML += hinzu1;
+                        for (let i = 0; i <= 4; i++) {
+                            let hinzu = '';
+                            if (i === 2) {
+                                hinzu = "<div class='zwischenraum'></div>";
+                            } else {
+                                counter += 1;
+                                if (Math.random() * 100 < auslastung) {
+                                    hinzu = "<div id='sitz" + counter + "' class='sitz' style='background: #333333'>" + ((counter - 1) % (4 * reihen) + 1) + "</div>";
+                                } else {
+                                    hinzu = "<div id='sitz" + counter + "' class='sitz'>" + ((counter - 1) % (4 * reihen) + 1) + "</div>";
+                                }
+
+                            }
+                            document.getElementById(k + "reihe" + j).innerHTML += hinzu;
+                        }
+                    }
+                });
             },
             error: function (result, textStatus) {
                 console.log('Fehlercode: ' + textStatus + '\nServerantwort: ' + result.responseText);
