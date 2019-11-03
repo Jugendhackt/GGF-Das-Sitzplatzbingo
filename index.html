@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+	<title>GGF</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	</link>
+</head>
+<body>
+
+
+
+
+
+
+
+	<center>	
+	<h1>GGF - Das Sitzplatzbingo</h1>
+	</center>
+	<form>
+
+	<div class ="rote_striche">
+	</div>	
+	<div class ="Kasten">
+		<label>Startort</label>
+		<input type="text"</input>
+		<label>Zielort</label>
+		<input type="text"</input>
+	<br>
+		<label>Zugnummer</label>
+		<input type="text"</input>
+	<br>
+		<label>Datum</label>
+		<input type="date"</input>
+		<label>Ankunftszeit</label>
+		<input type="time"</input>
+	<br>
+	<br>
+	<center>
+		<button id="suchen" class="button">Suchen</button>
+	</center>
+	<br>
+		<label>Waggon</label>
+		<input type="text"</input>
+	<br>
+		<label>Sitz</label>
+		<input type="text"</input>		
+	<center>
+		<button id="direktcheck" class="button">Direktcheck</button>
+	</center>
+	<br>
+	</div>
+	</form>
+	<hr class="rote_striche">
+       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+       <script>
+       $( "button#direktcheck" ).on( "click", function( event ) {
+          event.preventDefault();
+          $.ajax({
+		  url: "http://192.168.10.146:5000/seats/ICE610/2019-11-02/Wolfsburg%20Hbf",
+                  type: "GET",
+		  success: function( result ) {
+                     console.log(result);
+		  }
+	 });
+       });
+       </script>
+</body>
+</html>
+	
