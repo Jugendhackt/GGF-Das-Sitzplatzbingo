@@ -82,14 +82,14 @@
         event.preventDefault();
 
         $.ajax({
-            url: "https://ggf-backend.margau.me/seats/ICE610/2019-11-03/Ulm%20Hbf",
+            url: "https://ggf-backend.margau.me/seats/ICE610/d2019-11-03/Ulm%20Hbf",
             type: "GET",
             crossDomain: true,
             success: function (result) {
                 showTrainInfo(result);
             },
-            error: function (result, textStatus) {
-                console.log('Fehlercode: ' + textStatus + '\nServerantwort: ' + result.responseText);
+            error: function (result) {
+                alert('Fehler: ' + JSON.parse(result.responseText).error);
             }
         });
     });
