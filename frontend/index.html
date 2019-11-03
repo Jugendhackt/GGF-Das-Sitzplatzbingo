@@ -1,66 +1,66 @@
 <!doctype html>
-<html>
+<html lang="de">
 <head>
-	<title>GGF</title>
-	<link rel="stylesheet" type="text/css" href="style.css" />
-        <meta charset="UTF-8">
+    <title>GGF</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <meta charset="UTF-8">
 </head>
 <body>
-	<center>	
-	<h1>GGF - Das Sitzplatzbingo</h1>
-	</center>
-	<form>
+<center>
+    <h1>GGF - Das Sitzplatzbingo</h1>
+</center>
+<form>
 
-	<div class ="rote_striche">
-	</div>	
-	<div class ="Kasten">
-		<label for="startort">Startort</label>
-		<input id="startort" type="text"</input>
-		<label for="zielort">Zielort</label>
-		<input id="zielort" type="text"</input>
-	<br>
-		<label for="zugnummer">Zugnummer</label>
-		<input id="zugnummer" type="text"</input>
-	<br>
-		<label for="datum">Datum</label>
-		<input id="datum" type="date"</input>
-		<label for="time">Ankunftszeit</label>
-		<input id="time" type="time"</input>
-	<br>
-	<center>
-		<button id="search" class="button">Suchen</button>
-	</center>
-	<br>
-		<label for="waggon">Waggon</label>
-		<input id="waggon" type="text"</input>
-	<br>
-		<label for="sitz">Sitz</label>
-		<input id="sitz" type="text"</input>		
-	<center>
-		<button id="direktcheck" class="button">Direktcheck</button>
-	</center>
-	<br>
-	</div>
-	</form>
-	<hr class="rote_striche">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" crossorigin="anonymous" />
-	<script>
-       $( "button#direktcheck" ).on( "click", function( event ) {
-	event.preventDefault();
+    <div class="rote_striche">
+    </div>
+    <div class="Kasten">
+        <label for="startort">Startort</label>
+        <input id="startort" type="text"/>
+        <label for="zielort">Zielort</label>
+        <input id="zielort" type="text"/>
+        <br>
+        <label for="zugnummer">Zugnummer</label>
+        <input id="zugnummer" type="text"/>
+        <br>
+        <label for="datum">Datum</label>
+        <input id="datum" type="date"/>
+        <label for="time">Ankunftszeit</label>
+        <input id="time" type="time"/>
+        <br>
+        <center>
+            <button id="search" class="button">Suchen</button>
+        </center>
+        <br>
+        <label for="waggon">Waggon</label>
+        <input id="waggon" type="text"/>
+        <br>
+        <label for="sitz">Sitz</label>
+        <input id="sitz" type="text"/>
+        <center>
+            <button id="direktcheck" class="button">Direktcheck</button>
+        </center>
+        <br>
+    </div>
+</form>
+<hr class="rote_striche">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" crossorigin="anonymous"></script>
+<script>
+    $("button#direktcheck").on("click", function (event) {
+        event.preventDefault();
 
-	$.ajax({
-		url: "http://192.168.9.139:5000/seats/ICE610/2019-11-03/Ulm%20Hbf",
-		type: "GET",
-		crossDomain: true,
-		success: function( result ) {
-			console.log(result);
-		},
-		error: function( result, textStatus ) {
-			console.log('Fehlercode: ' + textStatus + '\nServerantwort: ' + result.responseText);
-		}
-	});
-       });
-       </script>
+        $.ajax({
+            url: "http://192.168.9.139:5000/seats/ICE610/2019-11-03/Ulm%20Hbf",
+            type: "GET",
+            crossDomain: true,
+            success: function (result) {
+                console.log(result);
+            },
+            error: function (result, textStatus) {
+                console.log('Fehlercode: ' + textStatus + '\nServerantwort: ' + result.responseText);
+            }
+        });
+    });
+</script>
 </body>
 </html>
 	
