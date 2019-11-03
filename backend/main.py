@@ -1,7 +1,9 @@
 from flask import Flask
+from flask import Response
 import requests
 import urllib.parse
 from datetime import datetime
+import json
 
 app = Flask(__name__)
 
@@ -37,6 +39,12 @@ def get_sequence_data(sequence_info, wagon_id):
     return None
 
 
+def get_response(answer, status):
+    response = Response(json.dumps(answer), status=status, mimetype='application/json')
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+
 @app.route("/seats/<train_name>/<date_string>/<station_name>")
 def seats(train_name, date_string, station_name):
     answer = {
@@ -51,7 +59,7 @@ def seats(train_name, date_string, station_name):
     stations_result = requests.get(api_links['station'].format(station_name)).json()
     if len(stations_result) == 0:
         answer['error'] = 'Bahnhof nicht gefunden'
-        return answer, 400
+        return get_response(answer, 400)
     station_info = stations_result[0]  # use first found station, TODO: show user the possible stations?
     station_id = station_info['id'][2:]  # remove 2 leading zeros from id
     answer['stationId'] = station_id
@@ -61,20 +69,20 @@ def seats(train_name, date_string, station_name):
         date = datetime.strptime(date_string, "%Y-%m-%d")
     except ValueError:
         answer['error'] = 'Ungültiges Datum (Format: YYYY-MM-DD)'
-        return answer, 400
+        return get_response(answer, 400)
     date_millis = int(date.timestamp() * 1000)
 
     # get train stations -> arrival and departure time at wanted station
     train_info = requests.get(api_links['train'].format(train_name, date_millis)).json()
     if 'jDetails' not in train_info or 'stops' not in train_info['jDetails']:
         answer['error'] = 'Zug nicht gefunden'
-        return answer, 400
+        return get_response(answer, 400)
 
     train_stations = train_info['jDetails']['stops']
     station_arrival_millis, station_departure_millis = get_station(train_stations, station_id)
     if not station_departure_millis:
         answer['error'] = 'Zug hält nicht am angegebenen Bahnhof (oder ist Endhalt)'
-        return answer, 400
+        return get_response(answer, 400)
 
     # convert request times to ISO format and return them
     answer['stationArrival'] = millis_to_iso_string(station_arrival_millis, False)
@@ -92,14 +100,14 @@ def seats(train_name, date_string, station_name):
         api_links['utilization'].format(train_name, station_id, start_time_iso, end_time_iso)).json()
     if 'auslastung' not in utilization_info:
         answer['error'] = 'Für den angegebenen Zug und Halt sind keine Auslastungsdaten verfügbar'
-        return answer, 400
+        return get_response(answer, 400)
 
     # get sequence info of train at station departure time
     train_number = ''.join([c for c in train_name if c.isdigit()])
     sequence_info = requests.get(api_links['sequence'].format(train_number, station_departure_millis)).json()
     if 'allFahrzeuggruppe' not in sequence_info:
         answer['error'] = 'Für den angegebenen Zug sind keine Wagondaten verfügbar'
-        return answer, 400
+        return get_response(answer, 400)
 
     # map data from utilization and sequence info to json object
     utilization = []
@@ -107,7 +115,7 @@ def seats(train_name, date_string, station_name):
         sequence_data = get_sequence_data(sequence_info, wagon_id)
         if not sequence_data:
             answer['error'] = 'Wagon-Informationen nicht gefunden'
-            return answer, 500
+            return get_response(answer, 500)
 
         # don't use data of end and dining wagons
         if sequence_data['kategorie'] in ['TRIEBKOPF', 'SPEISEWAGEN']:
@@ -127,7 +135,7 @@ def seats(train_name, date_string, station_name):
     answer['utilization'] = utilization
 
     answer['success'] = True
-    return answer
+    return get_response(answer, 200)
 
 
 if __name__ == "__main__":
