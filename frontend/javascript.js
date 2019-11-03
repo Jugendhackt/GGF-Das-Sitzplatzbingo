@@ -1,5 +1,6 @@
 function showTrainInfo(result) {
     let counter = 0, reihen = 12;
+    document.getElementById("ice").innerHTML = '';
     result.utilization.forEach(function (element) {
         let k = parseInt(element.wagonPosition);
 
